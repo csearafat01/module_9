@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Constructor
@@ -8,7 +9,7 @@ import 'package:flutter/material.dart';
 /// build - setState
 /// didUpdateWidget - Parent er configuration change
 
-/// deactive
+/// deactivate
 /// dispose
 
 class HomeScreen extends StatefulWidget {
@@ -26,7 +27,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // 1
   @override
   void initState() {
-    print('init state');
+    if (kDebugMode) {
+      print('init state');
+    }
     /// Task when screen start
     super.initState();
   }
@@ -34,19 +37,25 @@ class _HomeScreenState extends State<HomeScreen> {
   // 2
   @override
   void didChangeDependencies() {
-    print('Did change dependency');
+    if (kDebugMode) {
+      print('Did change dependency');
+    }
     super.didChangeDependencies();
   }
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
-    print('did update widget');
+    if (kDebugMode) {
+      print('did update widget');
+    }
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
-    print('Build method');
+    if (kDebugMode) {
+      print('Build method');
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -70,14 +79,18 @@ class _HomeScreenState extends State<HomeScreen> {
   // 5
   @override
   void deactivate() {
-    print('deactived');
+    if (kDebugMode) {
+      print('deactivated');
+    }
     super.deactivate();
   }
 
   // 6
   @override
   void dispose() {
-    print('dispose');
+    if (kDebugMode) {
+      print('dispose');
+    }
     super.dispose();
   }
 }
