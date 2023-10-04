@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (input.isNotEmpty) {
       final amount = int.tryParse(input);
       if (amount != null) {
-        totalAmount += amount;
+        totalAmount ++;
         final waterTrack = WaterTrack(DateTime.now(), amount);
         waterConsumeList.add(waterTrack);
         _amountOfGlassTEController.clear();
@@ -105,10 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     leading: CircleAvatar(
                       child: Text('${index + 1}'),
                     ),
-                    title: Text(DateFormat('HH:mm:ss a dd-MM-yyyy')
+                    title: Text(DateFormat('HH:mm:ss a')
+                        .format(waterTrack.time)),
+                    subtitle: Text(DateFormat('dd-MM-yyyy')
                         .format(waterTrack.time)),
                     trailing: Text(
-                      '${waterTrack.noOfGlass}',
+                      'Number of Glass Water: ${waterTrack.noOfGlass}',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
