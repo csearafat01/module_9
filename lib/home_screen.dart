@@ -1,83 +1,178 @@
 import 'package:flutter/material.dart';
-
-/// Constructor
-/// CreateState
-/// InitState
-
-/// DidChangeDependencies - dependency change
-/// build - setState
-/// didUpdateWidget - Parent er configuration change
-
-/// deactive
-/// dispose
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _HomeScreenState();
-  }
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int count = 0;
+  final TextEditingController _amountOfGlassTEController = TextEditingController();
+  List<WaterTrack> waterConsumeList = [];
+  int totalAmount = 0;
 
-  // 1
   @override
-  void initState() {
-    print('init state');
-    /// Task when screen start
-    super.initState();
+  void dispose() {
+    _amountOfGlassTEController.dispose();
+    super.dispose();
   }
 
-  // 2
-  @override
-  void didChangeDependencies() {
-    print('Did change dependency');
-    super.didChangeDependencies();
+  void addWaterTrack() {
+    final input = _amountOfGlassTEController.text.trim();
+    if (input.isNotEmpty) {
+      final amount = int.tryParse(input);
+      if (amount != null) {
+        final waterTrack = WaterTrack(DateTime.now(), amount);
+        waterConsumeList.add(waterTrack);
+        totalAmount += amount; // Add to the total count
+        _amountOfGlassTEController.clear();
+        setState(() {});
+      } else {
+        // Show an error message to the user
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid input. Please enter a valid number.'),
+          ),
+        );
+      }
+    }
   }
 
-  @override
-  void didUpdateWidget(covariant HomeScreen oldWidget) {
-    print('did update widget');
-    super.didUpdateWidget(oldWidget);
+  // Function to delete a water consumption entry and subtract its amount from the total
+  void deleteWaterTrack(int index) {
+    if (index >= 0 && index < waterConsumeList.length) {
+      final deletedAmount = waterConsumeList[index].noOfGlass;
+      waterConsumeList.removeAt(index);
+      totalAmount -= deletedAmount; // Subtract from the total count
+      setState(() {});
+    }
+  }
+
+  // Function to calculate the total consume for each date
+  Map<String, int> calculateTotalConsume(List<WaterTrack> tracks) {
+    final totalConsumeMap = <String, int>{};
+    for (final track in tracks) {
+      final dateKey = DateFormat('yyyy-MM-dd').format(track.time);
+      totalConsumeMap[dateKey] = (totalConsumeMap[dateKey] ?? 0) + track.noOfGlass;
+    }
+    return totalConsumeMap;
   }
 
   @override
   Widget build(BuildContext context) {
-    print('Build method');
+    final totalConsumeMap = calculateTotalConsume(waterConsumeList);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Water tracker'),
       ),
-      body: Center(
-        child: Text('$count', style: const TextStyle(
-            fontSize: 32
-        ),),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // count = count + 1;
-          count++;
-          setState(() {}); // rebuild
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 50,
+                      child: TextField(
+                        controller: _amountOfGlassTEController,
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: addWaterTrack,
+                      child: const Text('Add'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: waterConsumeList.length,
+              itemBuilder: (context, index) {
+                final dateKey = DateFormat('yyyy-MM-dd').format(waterConsumeList[index].time);
+
+                return DateSection(
+                  dateKey: dateKey,
+                  waterTrack: waterConsumeList[index],
+                  totalConsume: totalConsumeMap[dateKey] ?? 0,
+                  onDelete: () {
+                    deleteWaterTrack(index);
+                  },
+                );
+              },
+            ),
+          )
+        ],
       ),
     );
   }
+}
 
-  // 5
-  @override
-  void deactivate() {
-    print('deactived');
-    super.deactivate();
-  }
+class WaterTrack {
+  final DateTime time;
+  final int noOfGlass;
 
-  // 6
+  WaterTrack(this.time, this.noOfGlass);
+}
+
+class DateSection extends StatelessWidget {
+  final String dateKey;
+  final WaterTrack waterTrack;
+  final int totalConsume;
+  final VoidCallback onDelete;
+
+  const DateSection({super.key, 
+    required this.dateKey,
+    required this.waterTrack,
+    required this.totalConsume,
+    required this.onDelete,
+  });
+
+
   @override
-  void dispose() {
-    print('dispose');
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            dateKey,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Card(
+          elevation: 4,
+          child: ListTile(
+            leading: CircleAvatar(
+              child: Icon(Icons.countertops),
+            ),
+            title: Text(
+              DateFormat('HH:mm:ss a').format(waterTrack.time),
+
+            ),
+            subtitle: Text(
+    'Total Consume: $totalConsume',
+    style: const TextStyle(fontWeight: FontWeight.bold),
+    ),
+
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: onDelete,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
